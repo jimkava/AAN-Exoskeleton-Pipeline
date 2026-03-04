@@ -1,0 +1,50 @@
+function fileUrl = upload_file_to_supabase(localFilePath, remoteFileName)
+    % UPLOAD ΜΕ ΠΑΡΑΚΑΜΨΗ SSL (ΓΙΑ ΝΑ ΜΗ ΒΓΑΖΕΙ NULL)
+    
+    % --- ΡΥΘΜΙΣΕΙΣ (ΠΡΟΣΟΧΗ ΕΔΩ!) ---
+    supabaseUrl = 'https://xsqhjphewefeluyywiog.supabase.co'; 
+    apiKey = 'sb_secret_HbJm9EL9X9KUYwKc5dde2A_RG15mCJF'; % <--- ΕΔΩ ΤΟ ΚΛΕΙΔΙ ΣΟΥ!!!
+    bucketName = 'reports';  % <--- ΒΕΒΑΙΩΣΟΥ ΟΤΙ ΕΧΕΙΣ ΦΤΙΑΞΕΙ ΑΥΤΟ ΤΟ BUCKET
+    % -------------------------------
+
+    import matlab.net.http.*
+    import matlab.net.http.field.*
+    import matlab.net.http.io.*
+
+    if ~isfile(localFilePath)
+        fprintf('⚠️ Το αρχείο δεν βρέθηκε τοπικά: %s\n', localFilePath);
+        fileUrl = ''; return;
+    end
+    
+    targetUrl = sprintf('%s/storage/v1/object/%s/%s', supabaseUrl, bucketName, remoteFileName);
+    
+    provider = FileProvider(localFilePath);
+    headers = [
+        HeaderField('apikey', apiKey)
+        HeaderField('Authorization', ['Bearer ' apiKey])
+        HeaderField('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    ];
+
+    % ΤΟ ΜΥΣΤΙΚΟ: Απενεργοποίηση ελέγχου SSL
+    options = HTTPOptions('VerifyServerName', false, 'ConnectTimeout', 20);
+    
+    request = RequestMessage('POST', headers, provider);
+    
+    try
+        fprintf('☁️ Προσπάθεια ανεβάσματος: %s ...\n', remoteFileName);
+        response = send(request, targetUrl, options);
+        
+        if response.StatusCode == StatusCode.OK
+            fileUrl = sprintf('%s/storage/v1/object/public/%s/%s', supabaseUrl, bucketName, remoteFileName);
+            fprintf('✅ UPLOAD ΕΠΙΤΥΧΕΣ! Link: %s\n', fileUrl);
+        else
+            fprintf('⚠️ Upload Failed (Status %s): %s\n', string(response.StatusCode), response.StatusLine.ReasonPhrase);
+            % Εμφάνιση λεπτομερειών για debugging
+            disp(response.Body.Data);
+            fileUrl = '';
+        end
+    catch ME
+        fprintf('⚠️ Upload Error (Matlab Exception): %s\n', ME.message);
+        fileUrl = '';
+    end
+end
