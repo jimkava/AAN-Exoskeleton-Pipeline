@@ -1,4 +1,4 @@
-# Simulation-Based Actuator Selection via Cloud Digital Twin for Assist-as-Needed Exoskeletons 🦿☁️
+# Simulation-Based Actuator Selection via an Integrated Cloud-Biomechanical Pipeline for Assist-as-Needed Exoskeletons🦿☁️
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![MATLAB](https://img.shields.io/badge/MATLAB-R2023a-blue.svg)](https://mathworks.com/)
