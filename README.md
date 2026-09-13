@@ -16,7 +16,7 @@ The automated pipeline executes the following sequence for each pathology severi
 
 ## 📊 Live Cloud Dashboard
 You can view the real-time IoT dashboard and the motor selection database at our official project website:
-[**FesRobEx Database**](https://fesrobex.info/fesrobexdatabase/)
+[**FesRobEx Database**]([https://fesrobex.info/fesrobexdatabase/](https://fesrobex.info/bio-actuator-pipeline/))
 
 ## 📝 Citation
 If you use this code or methodology in your research, please cite our corresponding IEEE paper:
