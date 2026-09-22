@@ -1,0 +1,20 @@
+# MATLAB / OS
+*.asv
+*.log
+*.mat
+
+# Local work folders
+Temp_Files/
+Static_Gap*/
+delete_this_to_stop_optimization__*
+
+# Outputs generated when the scripts run
+04_Moco_AAN/Results_WexoSweep/
+04_Moco_AAN/Results_WexoSweep_1e5/
+04_Moco_AAN/**/Plots/
+04_Moco_AAN/**/Debug.omoco
+04_Moco_AAN/**/GRF.xml
+05_Plots/*.pdf
+05_Plots/*.png
+05_Plots/*.fig
+05_Plots/*.csv

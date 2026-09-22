@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OpenSimDocument Version="20302">
+	<CMCTool name="subject01_walk1_weak50">
+	<!--Name of the .osim file used to construct a model.-->
+	<model_file>../03_projectGait2392_weakness/subject01_simbody_weak50.osim</model_file>
+		<!--Replace the model's force set with sets specified in
+		    <force_set_files>? If false, the force set is appended to.-->
+		<replace_force_set> false </replace_force_set>
+		<!--List of xml files used to construct an force set for the model.-->
+		<force_set_files> gait2392_CMC_Actuators.xml </force_set_files>
+	<!--Directory used for writing results.-->
+	<results_directory>../03_projectGait2392_weakness/Results_CMC_weak50</results_directory>
+		<!--Output precision.  It is 20 by default.-->
+	<output_precision> 20 </output_precision>
+	<!--Initial time for the simulation.-->
+		<initial_time>       0.50000000 </initial_time>
+	<!--Final time for the simulation.-->
+		<final_time>       2.00000000 </final_time>
+		<!--Flag indicating whether or not to compute equilibrium values for
+		    states other than the coordinates or speeds.-->
+		<solve_for_equilibrium_for_auxiliary_states> true </solve_for_equilibrium_for_auxiliary_states>
+	<!--Maximum number of integrator steps.-->
+	<maximum_number_of_integrator_steps> 30000 </maximum_number_of_integrator_steps>
+	<!--Maximum integration step size.-->
+		<maximum_integrator_step_size>  1.0 </maximum_integrator_step_size>
+		<!--Minimum integration step size.-->
+		<minimum_integrator_step_size>       0.00000001 </minimum_integrator_step_size>
+	<!--Integrator error tolerance.-->
+		<integrator_error_tolerance>       0.00000100 </integrator_error_tolerance>
+	<!--Set of analyses to be run during the investigation.-->
+	<AnalysisSet name="Analyses">
+		<objects>
+			<Kinematics name="Kinematics">
+				<on> true </on>
+					<start_time> -infinity </start_time>
+					<end_time> infinity </end_time>
+				<step_interval> 10 </step_interval>
+				<in_degrees> true </in_degrees>
+					<coordinates> all </coordinates>
+			</Kinematics>
+			<Actuation name="Actuation">
+				<on> true </on>
+					<start_time> -infinity </start_time>
+					<end_time> infinity </end_time>
+				<step_interval> 10 </step_interval>
+				<in_degrees> true </in_degrees>
+			</Actuation>
+		</objects>
+			<groups/>
+	</AnalysisSet>
+		<!--Controller objects in the model.-->
+		<ControllerSet name="Controllers">
+			<objects/>
+			<groups/>
+		</ControllerSet>
+		<!--XML file containing the external loads.-->
+		<external_loads_file> subject01_walk1_grf.xml </external_loads_file>
+		<!--Desired point trajectories.-->
+		<desired_points_file>  </desired_points_file>
+	<!--Desired kinematic trajectories — από RRA output του OutputReference.-->
+	<desired_kinematics_file>subject01_walk1_RRA_Kinematics_q.sto</desired_kinematics_file>
+	<!--Tracking tasks file.-->
+	<task_set_file> gait2392_CMC_Tasks.xml </task_set_file>
+	<!--Constraints file.-->
+	<constraints_file> gait2392_CMC_ControlConstraints.xml </constraints_file>
+		<rra_controls_file>  </rra_controls_file>
+	<!--Initial states from normal CMC to skip equilibrium solving-->
+	<initial_states_file>../02_NORMAL/OutputReference/ResultsCMC/subject01_walk1_states.sto</initial_states_file>
+		<lowpass_cutoff_frequency>     -10.00000000 </lowpass_cutoff_frequency>
+		<cmc_time_window>       0.01000000 </cmc_time_window>
+		<use_curvature_filter> false </use_curvature_filter>
+	<use_fast_optimization_target> true </use_fast_optimization_target>
+		<optimizer_algorithm> ipopt </optimizer_algorithm>
+		<optimizer_derivative_dx>       1.00000000 </optimizer_derivative_dx>
+		<optimizer_convergence_criterion>       0.10000000 </optimizer_convergence_criterion>
+	<optimizer_max_iterations> 2000 </optimizer_max_iterations>
+	<optimizer_print_level> 0 </optimizer_print_level>
+        <use_verbose_printing> false </use_verbose_printing>
+	</CMCTool>
+</OpenSimDocument>
