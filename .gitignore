@@ -18,3 +18,7 @@ delete_this_to_stop_optimization__*
 05_Plots/*.png
 05_Plots/*.fig
 05_Plots/*.csv
+
+# Secrets
+.env
+*.env
