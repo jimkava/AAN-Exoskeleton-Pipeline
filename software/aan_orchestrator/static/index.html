@@ -47,10 +47,14 @@ main{max-width:1220px;margin:26px auto;padding:0 20px 40px}.intro{display:flex;j
 </div>
 <div class="card">
 <h2>2 · Βίντεο Pose2Sim</h2>
-<p>Ανέβασε το στατικό trial και τη βάδιση από κάθε κάμερα. Τα αρχεία αποθηκεύονται τοπικά στον υπολογιστή.</p>
+<p>Ανά κάμερα ανέβασε ένα συγχρονισμένο βίντεο που περιλαμβάνει στατική στάση και στη συνέχεια βάδιση, όπως στην ενότητα 13. Τα αρχεία αποθηκεύονται στον υπολογιστή.</p>
 <div id="uploadRows"></div>
 <div id="uploadMsg" class="status" style="margin-top:8px"></div>
-<div class="note">Η λήψη/συγχρονισμός τριών κινητών γίνεται βάσει του πρωτοκόλλου της ενότητας 11. Η εφαρμογή οργανώνει τα αρχεία μετά τη λήψη.</div>
+<hr class="divider"><h3>Ρύθμιση και βαθμονόμηση Pose2Sim</h3>
+<div class="field" style="margin-top:10px"><label>Config.toml</label><input id="configFile" type="file" accept=".toml"></div>
+<div id="calibrationRows"></div>
+<div id="configMsg" class="status" style="margin-top:8px"></div>
+<div class="note">Πριν από τη λήψη: βαθμονόμησε εσωτερικά/εξωτερικά τις κάμερες σύμφωνα με το πρωτόκολλο. Το Pose2Sim χρειάζεται τα calibration assets και το Config.toml στον φάκελο της συνεδρίας.</div>
 </div>
 </section>
 <aside>
@@ -90,17 +94,30 @@ function updateBeta(){
 ['leftForce','rightForce','leftArm','rightArm'].forEach(x=>$(x).addEventListener('input',updateBeta));
 function renderUploads(){
  let html='';
- for(const trial of ['static','gait'])for(let i=1;i<=3;i++){let cam='cam0'+i;html+='<div class="uploadrow"><b>'+ (trial==='static'?'Στατική':'Βάδιση')+' · '+cam+'</b><input type="file" accept="video/mp4,video/quicktime,video/*" capture="environment" data-trial="'+trial+'" data-camera="'+cam+'"><span class="status"></span></div>'}
+ for(let i=1;i<=3;i++){let cam='cam0'+i;html+='<div class="uploadrow"><b>Κάμερα · '+cam+'</b><input type="file" accept="video/mp4,video/quicktime,video/*" capture="environment" data-camera="'+cam+'"><span class="status"></span></div>'}
  $('uploadRows').innerHTML=html;
  $('uploadRows').querySelectorAll('input').forEach(inp=>inp.addEventListener('change',uploadVideo));
+ let cal='';
+ for(const kind of ['intrinsics','extrinsics'])for(let i=1;i<=3;i++){let cam='cam0'+i;cal+='<div class="uploadrow"><b>'+ (kind==='intrinsics'?'Εσωτερική':'Εξωτερική')+' · '+cam+'</b><input type="file" accept="video/*,.toml,.yaml,.yml,.json" data-kind="'+kind+'" data-camera="'+cam+'"><span class="status"></span></div>'}
+ $('calibrationRows').innerHTML=cal;
+ $('calibrationRows').querySelectorAll('input').forEach(inp=>inp.addEventListener('change',uploadCalibration));
+ $('configFile').onchange=uploadConfig;
 }
+function formFile(file){let form=new FormData();form.append('file',file);return form}
 async function uploadVideo(e){
  if(!activeId){$('uploadMsg').textContent='Δημιούργησε πρώτα συνεδρία.';e.target.value='';return}
  const file=e.target.files[0];if(!file)return;
  const row=e.target.closest('.uploadrow');row.querySelector('.status').textContent='Ανέβασμα…';
- const form=new FormData();form.append('file',file);
- try{let r=await fetch('/api/sessions/'+activeId+'/media/'+e.target.dataset.trial+'/'+e.target.dataset.camera,{method:'PUT',body:form});let j=await r.json();if(!r.ok)throw Error(j.detail||'Upload failed');row.querySelector('.status').textContent='Αποθηκεύτηκε';$('uploadMsg').textContent='Το αρχείο έμεινε στον τοπικό υπολογιστή.'}
+ try{let r=await fetch('/api/sessions/'+activeId+'/media/'+e.target.dataset.camera,{method:'PUT',body:formFile(file)});let j=await r.json();if(!r.ok)throw Error(j.detail||'Upload failed');row.querySelector('.status').textContent='Αποθηκεύτηκε';$('uploadMsg').textContent='Το αρχείο έμεινε στον τοπικό υπολογιστή.'}
  catch(err){row.querySelector('.status').textContent='Σφάλμα';$('uploadMsg').textContent=err.message}
+}
+async function uploadConfig(e){
+ const file=e.target.files[0];if(!file||!activeId)return; $('configMsg').textContent='Ανέβασμα…';
+ try{let r=await fetch('/api/sessions/'+activeId+'/pose2sim-config',{method:'PUT',body:formFile(file)});let j=await r.json();if(!r.ok)throw Error(j.detail||'Upload failed');$('configMsg').textContent='Config.toml αποθηκεύτηκε τοπικά.'}catch(err){$('configMsg').textContent=err.message}
+}
+async function uploadCalibration(e){
+ const file=e.target.files[0];if(!file||!activeId)return;const row=e.target.closest('.uploadrow');row.querySelector('.status').textContent='Ανέβασμα…';
+ try{let r=await fetch('/api/sessions/'+activeId+'/calibration/'+e.target.dataset.kind+'/'+e.target.dataset.camera,{method:'PUT',body:formFile(file)});let j=await r.json();if(!r.ok)throw Error(j.detail||'Upload failed');row.querySelector('.status').textContent='Αποθηκεύτηκε'}catch(err){row.querySelector('.status').textContent=err.message}
 }
 function val(id){return Number($(id).value)}
 async function createSession(){
