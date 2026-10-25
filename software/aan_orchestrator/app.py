@@ -189,13 +189,13 @@ def session_detail(session_id: str):
             "created_at": row["created_at"], "measurements": json.loads(row["data_json"])}
 
 
-@app.put("/api/sessions/{session_id}/media/{trial}/{camera}")
-async def upload_video(session_id: str, trial: Literal["static", "gait"], camera: Literal["cam01", "cam02", "cam03"], file: UploadFile = File(...)):
+@app.put("/api/sessions/{session_id}/media/{camera}")
+async def upload_video(session_id: str, camera: Literal["cam01", "cam02", "cam03"], file: UploadFile = File(...)):
     get_session(session_id)
     suffix = Path(file.filename or "").suffix.lower()
     if suffix not in {".mp4", ".mov", ".m4v"}:
         raise HTTPException(415, "Upload a camera video (.mp4, .mov, .m4v).")
-    destination = DATA / session_id / "videos" / trial / f"{camera}{suffix}"
+    destination = DATA / session_id / "videos" / f"{camera}{suffix}"
     destination.parent.mkdir(parents=True, exist_ok=True)
     size = 0
     with destination.open("wb") as out:
@@ -206,7 +206,37 @@ async def upload_video(session_id: str, trial: Literal["static", "gait"], camera
                 destination.unlink(missing_ok=True)
                 raise HTTPException(413, "Video exceeds the 2 GB per-file limit.")
             out.write(chunk)
-    return {"saved": True, "trial": trial, "camera": camera, "bytes": size, "path": str(destination)}
+    return {"saved": True, "camera": camera, "bytes": size, "path": str(destination)}
+
+
+@app.put("/api/sessions/{session_id}/pose2sim-config")
+async def upload_pose_config(session_id: str, file: UploadFile = File(...)):
+    get_session(session_id)
+    if Path(file.filename or "").name.lower() != "config.toml":
+        raise HTTPException(415, "Upload a Pose2Sim file named Config.toml.")
+    content = await file.read(1024 * 1024 + 1)
+    if len(content) > 1024 * 1024:
+        raise HTTPException(413, "Config.toml exceeds the 1 MB limit.")
+    destination = DATA / session_id / "Config.toml"
+    destination.write_bytes(content)
+    return {"saved": True, "path": str(destination)}
+
+
+@app.put("/api/sessions/{session_id}/calibration/{kind}/{camera}")
+async def upload_calibration(session_id: str, kind: Literal["intrinsics", "extrinsics"],
+                             camera: Literal["cam01", "cam02", "cam03"], file: UploadFile = File(...)):
+    get_session(session_id)
+    suffix = Path(file.filename or "").suffix.lower()
+    if suffix not in {".mp4", ".mov", ".m4v", ".toml", ".yaml", ".yml", ".json"}:
+        raise HTTPException(415, "Unsupported calibration asset.")
+    folder = DATA / session_id / "calibration" / kind / camera
+    folder.mkdir(parents=True, exist_ok=True)
+    destination = folder / f"calibration{suffix}"
+    content = await file.read(2 * 1024 * 1024 * 1024 + 1)
+    if len(content) > 2 * 1024 * 1024 * 1024:
+        raise HTTPException(413, "Calibration asset exceeds the 2 GB limit.")
+    destination.write_bytes(content)
+    return {"saved": True, "kind": kind, "camera": camera, "bytes": len(content)}
 
 
 @app.get("/api/jobs/{job_id}")
@@ -242,15 +272,14 @@ def run_stage(session_id: str, stage: Literal["pose2sim", "scale_ik", "mocotrack
         model = settings.get("gait2392_model")
         if not all(v and Path(v).is_file() for v in (python, script, model)):
             raise HTTPException(409, "Configure opensim_python, p2s_gait2392_script and gait2392_model in settings.json.")
-        trc_files = list(workspace.rglob("*.trc"))
-        static = next((p for p in trc_files if "static" in p.name.lower()), None)
-        walk = next((p for p in trc_files if "filt_butterworth_lstm" in p.name.lower() and "static" not in p.name.lower()), None)
-        if not static or not walk:
-            raise HTTPException(409, "Expected static and walking Pose2Sim TRC files were not found; inspect the Pose2Sim output names.")
+        trc_files = sorted(p for p in workspace.rglob("*.trc") if "lstm" in p.name.lower())
+        if not trc_files:
+            raise HTTPException(409, "No Pose2Sim *_LSTM.trc output found.")
+        trc = trc_files[-1]
         measurements = json.loads(row["data_json"])
-        cmd = [str(python), str(script), "--model", str(model), "--static", str(static),
+        cmd = [str(python), str(script), "--model", str(model), "--static", str(trc),
                "--static_t", *map(str, settings.get("static_time_s", [0.5, 2.0])),
-               "--walk", str(walk), "--mass", str(measurements["body_mass_kg"]),
+               "--walk", str(trc), "--mass", str(measurements["body_mass_kg"]),
                "--name", row["participant_code"], "--out", str(workspace / "gait2392")]
         return {"job_id": start_job(stage, cmd, workspace, session_id), "status": "queued"}
 
