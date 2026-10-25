@@ -218,7 +218,7 @@ seconds without re-solving.
 
 ## 9. Citation
 
-D. Kavalieros and P. Vartholomeos, "A Computational Framework for Actuator Selection in
+"A Computational Framework for Actuator Selection in
 Assist-as-Needed Lower-Limb Exoskeletons," *IEEE Transactions on Medical Robotics and Bionics*
 (submitted). Full citation details will be added on publication.
 
