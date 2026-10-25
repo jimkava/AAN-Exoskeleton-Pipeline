@@ -1,0 +1,9 @@
+{
+  "pose2sim_python": "C:/Users/REPLACE/Miniconda3/envs/Pose2Sim/python.exe",
+  "opensim_python": "C:/Users/REPLACE/Miniconda3/envs/Pose2Sim/python.exe",
+  "p2s_gait2392_script": "C:/PATH/TO/Hardware_Sensors/Pose2Sim_to_gait2392/p2s_gait2392.py",
+  "gait2392_model": "C:/PATH/TO/01_Input_Files/gait2392_millard2012muscle.osim",
+  "static_time_s": [0.5, 2.0],
+  "matlab_exe": "C:/Program Files/MATLAB/R2026a/bin/matlab.exe",
+  "project_root": "C:/PATH/TO/AAN-Exoskeleton-Pipeline"
+}
